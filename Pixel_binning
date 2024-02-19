@@ -1,0 +1,34 @@
+from google.colab import files
+import cv2
+import numpy as np
+from IPython.display import Image, display
+
+def apply_pixel_binning(image, binning_factor):
+    height, width, channels = image.shape
+    new_height = height // binning_factor
+    new_width = width // binning_factor
+
+    binned_image = np.zeros((new_height, new_width, channels), dtype=np.uint8)
+
+    for i in range(0, new_height):
+        for j in range(0, new_width):
+            block = image[i * binning_factor:(i + 1) * binning_factor, j * binning_factor:(j + 1) * binning_factor]
+            binned_pixel = np.mean(block, axis=(0, 1))
+            binned_image[i, j] = binned_pixel.astype(np.uint8)
+
+    return binned_image
+
+# Upload the clock tower image in Colab
+uploaded = files.upload()
+
+# Read the uploaded image
+image_path = list(uploaded.keys())[0]
+original_image = cv2.imread(image_path)
+
+# Apply pixel binning for noise reduction and resolution enhancement
+binning_factor = 4  # Choose an appropriate binning factor (experiment with different values)
+binned_result = apply_pixel_binning(original_image, binning_factor)
+
+# Display the results
+display(Image(filename=image_path))
+display(Image(data=cv2.imencode('.png', binned_result)[1].tobytes(), caption=f' {binning_factor}x{binning_factor}'))
